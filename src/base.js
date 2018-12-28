@@ -1,6 +1,6 @@
 
 
 console.log('hello');
-$('#app').html('app');
+$('#base').html('base');
 
 require('./index.css')
