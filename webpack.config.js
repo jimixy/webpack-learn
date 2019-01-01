@@ -3,7 +3,13 @@ const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+const UglifyjsWebpackPlugin = require('uglifyjs-webpack-plugin');
+
 const ExtractTextWebpackPlugin = require('extract-text-webpack-plugin')
+
+
+const copyWebpackPlugin = require('copy-webpack-plugin')
+
 
 let cssExtract = new ExtractTextWebpackPlugin('css/css.css');
 let lessExtract = new ExtractTextWebpackPlugin('css/less.css');
@@ -24,29 +30,52 @@ module.exports = {
     // filename: '[name].[hash:8].js'
     filename: '[name].js'
   },
+  watch: true,
+  watchOptions: {
+    ignored: /node_modules/,
+    poll: 1000,
+    aggregateTimeout: 500,
+  },
+  devtool: 'source-map',
   module:{
     rules: [
+      {
+        test: /\.js$/,
+        use:{
+          loader: 'babel-loader',
+          options: {
+            presets: ["env", "stage-0", "react"]
+          }
+        },
+        exclude: /(node_modules|bower_components)/,  // 优化处理加快速度
+        // use: {
+        //   loader: 'babel-loader',
+        //   options: {
+        //     presets: ['@babel/preset-env']
+        //   }
+        // }
+      },
       {
         test: /\.css$/,
         // css-loader用来解析css文件中的url路径
         loader: cssExtract.extract({
-          use: ['css-loader']
+          use: ['css-loader', 'postcss-loader']
         })
       },
       {
         test: /\.less$/,
-        loader: cssExtract.extract({
+        loader: lessExtract.extract({
           use: ['css-loader','less-loader']
         })
       },
       {
         test: /\.scss$/,
-        loader: cssExtract.extract({
+        loader: sassExtract.extract({
           use: ['css-loader', 'sass-loader']
         })
       },
       {
-        test: /\.(png|jpg|gif|svg|bmp)/,
+        test: /\.(png|jpg|gif|svg|bmp|eot|woff|woff2|ttf)/,
         loader: {
           loader: 'url-loader',
           options: {
@@ -58,10 +87,11 @@ module.exports = {
       {
         test: /\.(html|htm)/,
         loader: 'html-withimg-loader'
-      }
+      },      
     ]
   },
   plugins:[
+    new UglifyjsWebpackPlugin(),
     // 用来自动向模块内部注入变量
     new webpack.ProvidePlugin({
       $: 'jquery'
@@ -80,7 +110,11 @@ module.exports = {
     }),
     cssExtract,
     lessExtract,
-    sassExtract
+    sassExtract,
+    new copyWebpackPlugin([{
+      from: path.join(__dirname, 'public'),
+      to: path.join(__dirname, 'dist')
+    }])
     // new HtmlWebpackPlugin({
     //   template: './src/index.html',
     //   filename: 'base.html', // 产出的文件名

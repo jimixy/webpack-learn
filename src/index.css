@@ -6,3 +6,8 @@ body{
   height: 220px;
   background: url(./images/11.png)
 }
+.square{
+  width: 200px;
+  height: 200px;
+  transform: translate(50%);
+}
